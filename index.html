@@ -265,60 +265,46 @@ function loadLocal(){ try{ const j = JSON.parse(localStorage.getItem(LS_KEY)||'{
   if (j.srcOn) S.srcOn = j.srcOn; if (j.theme) S.theme = j.theme; }catch(e){} }
 function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({listened:S.listened, started:S.started, pos:S.pos, speed:S.speed, nowId:S.nowId, srcOn:S.srcOn, theme:S.theme, fav:S.fav, pls:S.pls, queue:S.queue, secs:S.secs, name:S.name, updated:S.updated})); }catch(e){} }
 // persist(): a change to synced data (history, favorites, playlists, time). Bumps the change clock and queues a cloud save.
-function persist(){ S.updated = Date.now(); saveLocal(); if (typeof Cloud !== 'undefined') Cloud.queue(); }
+function persist(quiet){ S.updated = Date.now(); saveLocal(); if (!quiet && typeof Cloud !== 'undefined') Cloud.queue(); }
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
 
-// ---------- sign-in & sync (Supabase: email code auth + one row of JSON per user) ----------
-const SUPA = { url: '', key: '' };   // filled in once the Supabase project exists
-const AUTH_KEY = 'talklib.auth';
+// ---------- email sync (tiny Cloudflare Worker that stores one JSON copy per email) ----------
+// No password: the email is the key. The worker only ever sees a scrambled (SHA-256) version of it.
+const SYNC_URL = '';   // e.g. https://talk-sync.<name>.workers.dev, filled in once the worker exists
+const AUTH_KEY = 'talklib.sync';
 const Cloud = {
-  ready: !!(SUPA.url && SUPA.key), auth: null, status: '', pendingEmail: '', timer: null, lastPush: 0,
+  ready: !!SYNC_URL, auth: null, status: '', timer: null, lastPush: 0,
   load(){ try{ this.auth = JSON.parse(localStorage.getItem(AUTH_KEY)||'null'); }catch(e){ this.auth = null; } if (!this.ready) this.auth = null; },
   save(){ try{ this.auth ? localStorage.setItem(AUTH_KEY, JSON.stringify(this.auth)) : localStorage.removeItem(AUTH_KEY); }catch(e){} },
   setStatus(t){ this.status = t; const el = document.getElementById('syncState'); if (el) el.textContent = t; },
-  async req(path, opts={}, auth=true){
-    const h = { apikey: SUPA.key, 'Content-Type': 'application/json' };
-    if (auth){ await this.fresh(); if (!this.auth) throw new Error('signed out'); h.Authorization = 'Bearer ' + this.auth.access_token; }
-    const r = await fetch(SUPA.url + path, { ...opts, headers: { ...h, ...(opts.headers||{}) } });
-    if (!r.ok){ let m = ''; try{ const j = await r.json(); m = j.msg || j.message || j.error_description || j.error || ''; }catch(e){} const err = new Error(m || ('HTTP ' + r.status)); err.status = r.status; throw err; }
-    return r.status === 204 ? null : r.json().catch(()=>null);
-  },
-  keep(j){ this.auth = { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Math.floor(Date.now()/1000) + (j.expires_in||3600), email: j.user ? j.user.email : this.auth.email, uid: j.user ? j.user.id : this.auth.uid }; this.save(); },
-  async fresh(){
-    if (!this.auth || this.auth.expires_at - 120 > Date.now()/1000) return;
-    try{ this.keep(await this.req('/auth/v1/token?grant_type=refresh_token', { method:'POST', body: JSON.stringify({ refresh_token: this.auth.refresh_token }) }, false)); }
-    catch(e){ if (e.status === 400 || e.status === 401){ this.auth = null; this.save(); toast('Please sign in again'); render(true); } throw e; }
-  },
-  async sendCode(email){ await this.req('/auth/v1/otp', { method:'POST', body: JSON.stringify({ email, create_user: true }) }, false); this.pendingEmail = email; },
-  async verify(code){
-    const j = await this.req('/auth/v1/verify', { method:'POST', body: JSON.stringify({ type:'email', email: this.pendingEmail, token: code }) }, false);
-    this.keep(j); this.pendingEmail = '';
-    const remote = await this.pull();               // first sign-in on this device: combine both copies
-    if (remote) mergeIn(remote);
-    persist(); await this.push();
-  },
+  async keyFor(email){ const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('talklib:' + email)); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join(''); },
+  url(){ return SYNC_URL.replace(/\/$/,'') + '/u/' + this.auth.key; },
   payload(){ return { l:S.listened, p:S.pos, f:S.fav, pl:S.pls, s:Math.round(S.secs), n:S.name, u:S.updated }; },
-  async pull(){ const rows = await this.req('/rest/v1/user_data?select=data&user_id=eq.' + encodeURIComponent(this.auth.uid)); return rows && rows[0] ? rows[0].data : null; },
+  async pull(){ const r = await fetch(this.url(), { cache:'no-store' }); if (r.status === 404) return null; if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); },
+  take(d){ S.listened = d.l||{}; S.pos = d.p||{}; S.fav = d.f||{}; S.pls = Array.isArray(d.pl) ? d.pl : []; S.secs = Math.max(+d.s||0, S.secs); S.name = d.n||''; S.updated = +d.u||0; saveLocal();
+    const ae = document.activeElement; if (!(ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName))) render(true); },
   async push(keepalive){
     if (!this.auth) return; clearTimeout(this.timer); this.timer = null; this.setStatus('Saving…');
-    try{ await this.req('/rest/v1/user_data?on_conflict=user_id', { method:'POST', keepalive: !!keepalive,
-        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ user_id: this.auth.uid, data: this.payload(), updated_at: new Date().toISOString() }) });
+    try{ const r = await fetch(this.url(), { method:'PUT', keepalive: !!keepalive, headers:{ 'Content-Type':'text/plain' }, body: JSON.stringify(this.payload()) });
+      if (r.status === 409){ this.take(await r.json()); this.setStatus('Synced'); return; }   // another device saved something newer
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       this.lastPush = Date.now(); this.setStatus('Synced'); }
     catch(e){ this.setStatus(navigator.onLine === false ? 'Offline · will sync later' : 'Not synced yet · will retry'); }
   },
-  queue(){ if (!this.auth || this.timer) return; this.timer = setTimeout(() => this.push(), 8000); },
+  queue(){ if (!this.auth || this.timer) return; this.timer = setTimeout(() => this.push(), 5000); },
+  async link(email){                               // first time on this device: combine this phone's copy with the saved one
+    this.auth = { email, key: await this.keyFor(email) };
+    const remote = await this.pull().catch(e => { this.auth = null; throw e; });
+    this.save(); if (remote) mergeIn(remote); persist(true); await this.push(); return !!remote;
+  },
   async sync(){
     if (!this.auth) return;
     try{ const d = await this.pull();
-      if (d && (+d.u||0) > S.updated){                // another device changed things more recently: take its copy
-        S.listened = d.l||{}; S.pos = d.p||{}; S.fav = d.f||{}; S.pls = Array.isArray(d.pl) ? d.pl : []; S.secs = Math.max(+d.s||0, S.secs); S.name = d.n||''; S.updated = +d.u;
-        saveLocal(); this.setStatus('Synced');
-        const ae = document.activeElement; if (!(ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName))) render(true);
-      } else if (!d || S.updated > (+d.u||0)) await this.push(); else this.setStatus('Synced');
-    }catch(e){ if (this.auth) this.setStatus(navigator.onLine === false ? 'Offline · will sync later' : 'Not synced yet · will retry'); }
+      if (d && (+d.u||0) > S.updated){ this.take(d); this.setStatus('Synced'); }
+      else if (!d || S.updated > (+d.u||0)) await this.push(); else this.setStatus('Synced');
+    }catch(e){ this.setStatus(navigator.onLine === false ? 'Offline · will sync later' : 'Not synced yet · will retry'); }
   },
-  async signOut(){ try{ await this.req('/auth/v1/logout', { method:'POST' }); }catch(e){} this.auth = null; this.save(); }
+  unlink(){ this.auth = null; this.save(); }
 };
 Cloud.load();
 
@@ -362,7 +348,7 @@ audio.addEventListener('seeking', () => { lastT = null; });
 audio.addEventListener('timeupdate', () => {
   const d = audio.duration, c = audio.currentTime;
   if (!audio.paused && lastT != null){ const dt = c - lastT; if (dt > 0 && dt < 4){ S.secs += dt / (audio.playbackRate||1);
-    if (Date.now() - lastTimeSave > 15000){ lastTimeSave = Date.now(); persist(); } } }
+    if (Date.now() - lastTimeSave > 15000){ lastTimeSave = Date.now(); persist(true); } } }
   lastT = audio.paused ? null : c;
   if (isFinite(d) && d > 0){ $('#pSeek').value = Math.round(c/d*1000); $('#pDur').textContent = fmtTime(d); }
   $('#pCur').textContent = fmtTime(c);
@@ -372,7 +358,7 @@ audio.addEventListener('timeupdate', () => {
 audio.addEventListener('ended', () => { if (S.nowId){ markListened(S.nowId, !!S.listened[S.nowId]); delete S.pos[S.nowId]; persist(); if (!playNext(true)) render(true); } });
 audio.addEventListener('error', () => { if (audio.src) toast('This recording could not be loaded. Try "Open talk" instead.'); });
 function savePos(force){ if (!S.nowId || S.listened[S.nowId]) return; const now = Date.now(); if (!force && now - lastSave < 5000) return; lastSave = now;
-  const d = audio.duration; S.pos[S.nowId] = { t: Math.floor(audio.currentTime), d: isFinite(d) ? Math.floor(d) : 0 }; persist(); }
+  const d = audio.duration; S.pos[S.nowId] = { t: Math.floor(audio.currentTime), d: isFinite(d) ? Math.floor(d) : 0 }; persist(true); }
 $('#pPlay').onclick = () => audio.paused ? audio.play().catch(()=>{}) : audio.pause();
 $('#pBack').onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 15); };
 $('#pFwd').onclick = () => { audio.currentTime = Math.min(audio.duration||1e9, audio.currentTime + 15); };
@@ -542,16 +528,13 @@ function topTopics(n){
 }
 function accountHTML(){
   const a = Cloud.auth;
-  if (!Cloud.ready) return `<div class="panel"><h4>Sign in</h4><p>Signing in to sync across devices isn't switched on yet. Everything is saved on this device for now.</p></div>`;
-  if (a) return `<div class="panel acct"><div class="acct-row"><div><h4>Signed in</h4><p>${esc(a.email)} · <span id="syncState">${esc(Cloud.status)}</span></p></div>
-      <button class="btn small ghost" data-act="signout">Sign out</button></div>
-      <p>Your history, favorites and playlists sync to any phone or computer where you sign in with this email.</p></div>`;
-  const step2 = Cloud.pendingEmail;
-  return `<div class="panel acct"><h4>Sign in to sync</h4>
-    <p>${step2 ? `We sent a code to <b>${esc(step2)}</b>. It can take a minute; check spam too.` : 'Use your email to keep your history, favorites and playlists on every device. No password; we email you a code.'}</p>
-    ${step2 ? `<div class="newpl" style="margin:0"><input id="otpIn" inputmode="numeric" autocomplete="one-time-code" placeholder="Code from the email" maxlength="10"><button class="btn small" data-act="verify">Sign in</button></div>
-      <div class="row"><button class="linkbtn" data-act="resend">Send a new code</button><button class="linkbtn" data-act="otherEmail">Use a different email</button></div>`
-    : `<div class="newpl" style="margin:0"><input id="emailIn" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"><button class="btn small" data-act="sendcode">Email me a code</button></div>`}
+  if (!Cloud.ready) return `<div class="panel"><h4>Sync across devices</h4><p>Syncing isn't switched on yet. Everything is saved on this device for now.</p></div>`;
+  if (a) return `<div class="panel acct"><div class="acct-row"><div><h4>Syncing</h4><p>${esc(a.email)} · <span id="syncState">${esc(Cloud.status)}</span></p></div>
+      <button class="btn small ghost" data-act="unlink">Stop</button></div>
+      <p>On another phone, tablet or computer, open the app and type this same email on the Profile tab. Everything comes along.</p></div>`;
+  return `<div class="panel acct"><h4>Sync across devices</h4>
+    <p>Type your email to keep your history, favorites and playlists on every device. No password: just use the same email on each one.</p>
+    <div class="newpl" style="margin:0"><input id="emailIn" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"><button class="btn small" data-act="link">Sync</button></div>
   </div>`;
 }
 function viewProfile(){
@@ -569,7 +552,7 @@ function viewProfile(){
     : `<p class="sub" style="margin:0">Listen to a few talks and your top topics show up here.</p>`;
   return `<div class="prof-head"><span class="avatar" aria-hidden="true">${esc(initial)}</span>
       <div class="pname"><input id="nameIn" value="${esc(S.name)}" placeholder="${Cloud.auth ? esc(Cloud.auth.email.split('@')[0]) : 'Your name'}" maxlength="40" aria-label="Your name" autocomplete="name">
-      <span class="sub" style="margin:0">${Cloud.auth ? esc(Cloud.auth.email) : 'Not signed in'}</span></div></div>
+      <span class="sub" style="margin:0">${Cloud.auth ? esc(Cloud.auth.email) : 'Not syncing'}</span></div></div>
     <div class="stats">
       <div class="stat"><b>${ids.length.toLocaleString()}</b><span>talks heard</span></div>
       <div class="stat"><b>${fmtDur(S.secs)}</b><span>time listened</span></div>
@@ -584,7 +567,7 @@ function viewProfile(){
     ${ids.length > S.hShown ? `<button class="btn ghost showmore" data-act="hmore">Show more</button>`:''}
     <div class="panel">
       <h4>Backup code</h4>
-      <p>${Cloud.auth ? 'Signing in already keeps everything safe. A backup code is an extra copy.' : 'Not signed in? Copy this code and keep it somewhere safe. Paste it on a new phone to bring your history, favorites and playlists over.'}</p>
+      <p>${Cloud.auth ? 'Syncing already keeps everything safe. A backup code is an extra copy.' : 'Not syncing? Copy this code and keep it somewhere safe. Paste it on a new phone to bring your history, favorites and playlists over.'}</p>
       <div class="row"><button class="btn small" data-act="backup">Copy backup code</button><button class="btn small ghost" data-act="showrestore">Restore from a code</button></div>
       <div id="restoreBox" hidden class="filters" style="margin:0">
         <textarea id="restoreText" placeholder="Paste your backup code here"></textarea>
@@ -732,15 +715,12 @@ document.addEventListener('click', async e => {
   if (act==='spmore'){ S.spShown += 40; render(true); return; }
   if (act==='spmoreAll'){ S.spShown = Math.max(S.spShown,60) + 100; render(true); return; }
   if (act==='hmore'){ S.hShown += 40; render(true); return; }
-  if (act==='sendcode' || act==='resend'){ const email = act==='resend' ? Cloud.pendingEmail : ($('#emailIn').value||'').trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Enter your email address'); $('#emailIn') && $('#emailIn').focus(); return; }
-    el.disabled = true; try{ await Cloud.sendCode(email); toast('Code sent to ' + email); render(true); const o = $('#otpIn'); if (o) o.focus(); }
-    catch(err){ el.disabled = false; toast(/rate|seconds/i.test(err.message) ? 'Please wait a minute before asking for another code' : "Couldn't send the code. Try again in a minute."); } return; }
-  if (act==='otherEmail'){ Cloud.pendingEmail = ''; render(true); return; }
-  if (act==='verify'){ const code = ($('#otpIn').value||'').replace(/\D/g,''); if (code.length < 6){ toast('Enter the code from the email'); return; }
-    el.disabled = true; try{ await Cloud.verify(code); toast('Signed in'); render(true); }
-    catch(err){ el.disabled = false; toast(/expired|invalid/i.test(err.message) ? 'That code is wrong or expired. Send a new one.' : "Couldn't sign in. Check your connection."); } return; }
-  if (act==='signout'){ await Cloud.signOut(); toast('Signed out. Your history stays on this device.'); render(true); return; }
+  if (act==='link'){ const email = ($('#emailIn').value||'').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Enter your email address'); $('#emailIn').focus(); return; }
+    el.disabled = true;
+    try{ const found = await Cloud.link(email); toast(found ? 'Synced. Your saved history is here.' : 'Syncing is on'); render(true); }
+    catch(err){ el.disabled = false; toast("Couldn't reach the sync service. Check your connection and try again."); } return; }
+  if (act==='unlink'){ Cloud.unlink(); toast('Stopped syncing. Your history stays on this device.'); render(true); return; }
   if (act==='backup'){ const code = backupCode();
     try{ await navigator.clipboard.writeText(code); toast('Backup code copied'); }
     catch(err){ $('#restoreBox').hidden = false; const ta = $('#restoreText'); ta.value = code; ta.select(); toast('Select and copy the code below'); } return; }
@@ -748,7 +728,7 @@ document.addEventListener('click', async e => {
   if (act==='restore'){ const n = restoreCode($('#restoreText').value); if (n < 0) toast("That doesn't look like a backup code"); else { toast(n + ' listened talk' + (n===1?'':'s') + ' restored, plus favorites and playlists'); render(); } return; }
 });
 document.addEventListener('keydown', e => {
-  if (e.key==='Enter'){ const m = {newPl:'plcreate', sheetNew:'sheetcreate', renameIn:'plrenamesave', emailIn:'sendcode', otpIn:'verify'}[e.target.id];
+  if (e.key==='Enter'){ const m = {newPl:'plcreate', sheetNew:'sheetcreate', renameIn:'plrenamesave', emailIn:'link'}[e.target.id];
     if (e.target.id==='nameIn'){ e.target.blur(); return; } if (m){ e.preventDefault(); document.querySelector(`[data-act="${m}"]`).click(); } }
   if (e.key==='Escape' && $('#sheet')) closeSheet();
 });
