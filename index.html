@@ -51,7 +51,7 @@ h3.sec{font:600 13px/1 var(--body);letter-spacing:.08em;text-transform:uppercase
 
 /* tab bar */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--tabh)}
+nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--tabh)}
 nav.tabs button{background:none;border:0;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
 nav.tabs button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav.tabs button[aria-current="page"]{color:var(--accent)}
@@ -99,7 +99,7 @@ details.more[open] summary{margin-bottom:10px}
 .list{display:grid;gap:12px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 12px;display:grid;gap:8px;min-width:0}
 .card.done{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
-.card .top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.card .top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;row-gap:4px}
 .src{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c,var(--accent))}
 .src::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:currentColor;margin-right:6px;vertical-align:1px}
 .date{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -139,6 +139,39 @@ details.more[open] summary{margin-bottom:10px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabh) + var(--playerh) + 18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.on{opacity:1}
 .loading{padding:40px 0;text-align:center;color:var(--muted)}
+/* favorites + playlists */
+.ico{background:none;border:1px solid var(--line);border-radius:10px;width:38px;height:36px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);padding:0}
+.ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ico.on{color:#c2334d;border-color:color-mix(in srgb,#c2334d 40%,var(--line))}
+.ico.on svg{fill:currentColor}
+.card .th{display:flex;gap:10px;align-items:flex-start}
+.card .th h3{flex:1;min-width:0}
+.card .tr{display:inline-flex;gap:6px;flex:none}
+.card .tr .ico{width:36px;height:34px}
+.pls{display:grid;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.pls button.pl{display:flex;gap:12px;align-items:center;padding:14px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;font-size:16px;font-weight:600;min-width:0}
+.pls button.pl:last-child{border-bottom:0}
+.pls .plico{width:38px;height:38px;border-radius:10px;background:var(--bg);display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--accent)}
+.pls .plico.fav{color:#c2334d}
+.pls .plico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pls .plico.fav svg{fill:currentColor}
+.pls .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pls .n{font-size:13px;font-weight:400;color:var(--muted);white-space:nowrap}
+.newpl{display:flex;gap:8px;margin-top:12px}
+.newpl input{flex:1;width:auto;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;font-size:16px;min-width:0}
+.reorder{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.reorder .ico{width:34px;height:32px}
+.pl-tools{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
+.btn.danger{background:transparent;color:#c2334d;border:1px solid color-mix(in srgb,#c2334d 40%,var(--line))}
+.btn.danger.armed{background:#c2334d;color:#fff}
+.sheet-bg{position:fixed;inset:0;background:rgba(8,12,24,.45);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow:auto;display:grid;gap:12px}
+.sheet h4{margin:0;font:600 19px/1.25 var(--display)}
+.sheet .st{font-size:14px;color:var(--muted);margin:-6px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet label.opt{display:flex;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line);font-size:16px;font-weight:500}
+.sheet label.opt input{width:22px;height:22px;accent-color:var(--accent);flex:none}
+.sheet label.opt span{flex:1;min-width:0}
+.queue-note{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
@@ -154,9 +187,10 @@ details.more[open] summary{margin-bottom:10px}
 <section class="player" id="player" hidden aria-label="Now playing">
   <div class="in">
     <div class="row1">
-      <div class="info"><div class="pt" id="pTitle"></div><div class="ps" id="pSpeaker"></div></div>
+      <div class="info"><div class="pt" id="pTitle"></div><div class="ps" id="pSpeaker"></div><div class="queue-note" id="pQueue" hidden></div></div>
       <button class="pbtn speed" id="pSpeed" aria-label="Playback speed">1×</button>
       <button class="pbtn main" id="pPlay" aria-label="Play"><svg viewBox="0 0 24 24" id="pIcon"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></svg></button>
+      <button class="pbtn" id="pNext" aria-label="Next talk in playlist" hidden><svg viewBox="0 0 24 24"><path d="M5 5l10 7-10 7z" fill="currentColor" stroke="none"/><path d="M19 5v14"/></svg></button>
       <button class="pbtn" id="pClose" aria-label="Close player"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     <div class="row2">
@@ -174,6 +208,7 @@ details.more[open] summary{margin-bottom:10px}
   <button data-tab="shuffle" aria-current="page"><svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle</button>
   <button data-tab="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</button>
   <button data-tab="speakers"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Speakers</button>
+  <button data-tab="saved"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Saved</button>
   <button data-tab="history"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Listened</button>
 </div></nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -187,19 +222,26 @@ const ICON_CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/><
 const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></svg>';
 const ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" fill="currentColor" stroke="none"/></svg>';
 const ICON_OPEN = '<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>';
+const ICON_HEART = '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+const ICON_LIST = '<svg viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h7"/><path d="M18 15v6M15 18h6"/></svg>';
+const ICON_PL = '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>';
+const ICON_UP = '<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>';
+const ICON_DOWN = '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
 const SPEEDS = [1, 1.25, 1.5, 1.75, 2, 0.75];
 const DONE_AT = 0.9;
 
 let TALKS = [], BYID = new Map(), THEMES = [], SOURCES = {}, BUILT = '';
 const S = { tab:'shuffle', listened:{}, started:{}, pos:{}, speed:1, nowId:null, srcOn:null, theme:'', current:[], recent:[],
   q:'', qSrc:null, qTheme:'', qFrom:'', qTo:'', qHide:false, qSort:'new', qShown:40,
-  spQ:'', spSort:'count', speaker:null, spShown:40, hShown:40 };
+  spQ:'', spSort:'count', speaker:null, spShown:40, hShown:40,
+  fav:{}, pls:[], openPl:null, queue:null, sheetId:null, delArmed:false };
 
 // ---------- persistence (this device) ----------
 function loadLocal(){ try{ const j = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
   S.listened = j.listened||{}; S.started = j.started||{}; S.pos = j.pos||{}; S.speed = j.speed||1; S.nowId = j.nowId||null;
+  S.fav = j.fav||{}; S.pls = Array.isArray(j.pls) ? j.pls : []; S.queue = j.queue||null;
   if (j.srcOn) S.srcOn = j.srcOn; if (j.theme) S.theme = j.theme; }catch(e){} }
-function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({listened:S.listened, started:S.started, pos:S.pos, speed:S.speed, nowId:S.nowId, srcOn:S.srcOn, theme:S.theme})); }catch(e){} }
+function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({listened:S.listened, started:S.started, pos:S.pos, speed:S.speed, nowId:S.nowId, srcOn:S.srcOn, theme:S.theme, fav:S.fav, pls:S.pls, queue:S.queue})); }catch(e){} }
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
 
 // ---------- helpers ----------
@@ -226,6 +268,7 @@ function loadTalk(id, autoplay){
   }
   $('#pTitle').textContent = t.title; $('#pSpeaker').textContent = t.speaker + ' · ' + talkDate(t);
   $('#pSpeed').textContent = S.speed + '×';
+  updateQueueUI();
   setPlayerVisible(true);
   if (!S.started[id] && !S.listened[id]) S.started[id] = today();
   persist();
@@ -244,7 +287,7 @@ audio.addEventListener('timeupdate', () => {
   savePos(false);
   if (S.nowId && isFinite(d) && d > 60 && c/d >= DONE_AT && !S.listened[S.nowId]){ markListened(S.nowId); if (S.tab!=='search') render(true); }
 });
-audio.addEventListener('ended', () => { if (S.nowId){ markListened(S.nowId, !!S.listened[S.nowId]); delete S.pos[S.nowId]; persist(); render(true); } });
+audio.addEventListener('ended', () => { if (S.nowId){ markListened(S.nowId, !!S.listened[S.nowId]); delete S.pos[S.nowId]; persist(); if (!playNext(true)) render(true); } });
 audio.addEventListener('error', () => { if (audio.src) toast('This recording could not be loaded. Try "Open talk" instead.'); });
 function savePos(force){ if (!S.nowId || S.listened[S.nowId]) return; const now = Date.now(); if (!force && now - lastSave < 5000) return; lastSave = now;
   const d = audio.duration; S.pos[S.nowId] = { t: Math.floor(audio.currentTime), d: isFinite(d) ? Math.floor(d) : 0 }; persist(); }
@@ -253,13 +296,15 @@ $('#pBack').onclick = () => { audio.currentTime = Math.max(0, audio.currentTime 
 $('#pFwd').onclick = () => { audio.currentTime = Math.min(audio.duration||1e9, audio.currentTime + 15); };
 $('#pSpeed').onclick = () => { S.speed = SPEEDS[(SPEEDS.indexOf(S.speed)+1) % SPEEDS.length]; audio.playbackRate = S.speed; $('#pSpeed').textContent = S.speed + '×'; persist(); };
 $('#pSeek').oninput = e => { const d = audio.duration; if (isFinite(d)) audio.currentTime = e.target.value/1000*d; };
-$('#pClose').onclick = () => { savePos(true); audio.pause(); audio.removeAttribute('src'); audio.load(); S.nowId = null; persist(); setPlayerVisible(false); render(true); };
+$('#pNext').onclick = () => { savePos(true); playNext(true); };
+$('#pClose').onclick = () => { savePos(true); audio.pause(); audio.removeAttribute('src'); audio.load(); S.nowId = null; S.queue = null; persist(); setPlayerVisible(false); render(true); };
 if ('mediaSession' in navigator){
   const ms = navigator.mediaSession;
   try{ ms.setActionHandler('play', () => audio.play()); ms.setActionHandler('pause', () => audio.pause());
     ms.setActionHandler('seekbackward', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
     ms.setActionHandler('seekforward', () => { audio.currentTime = audio.currentTime + 15; });
     ms.setActionHandler('seekto', e => { if (e.seekTime != null) audio.currentTime = e.seekTime; }); }catch(e){}
+  try{ ms.setActionHandler('nexttrack', () => { savePos(true); playNext(true); }); }catch(e){}
 }
 window.addEventListener('pagehide', () => savePos(true));
 document.addEventListener('visibilitychange', () => { if (document.hidden) savePos(true); });
@@ -281,7 +326,8 @@ function cardHTML(t, extra=''){
   const bar = p && p.d ? `<div class="prog" title="${fmtTime(p.t)} of ${fmtTime(p.d)}"><i style="width:${Math.min(100,Math.round(p.t/p.d*100))}%"></i></div>` : '';
   return `<article class="card${done?' done':''}" style="--c:var(--${t.src})">
     <div class="top"><span class="src">${esc(srcName(t.src))}${t.kind && !/conference/i.test(t.kind) ? ' · '+esc(t.kind) : ''}</span><span class="date">${esc(talkDate(t))}</span></div>
-    <h3>${esc(t.title)}</h3>
+    <div class="th"><h3>${esc(t.title)}</h3><span class="tr"><button class="ico${S.fav[t.id]?' on':''}" data-act="fav" data-id="${t.id}" aria-pressed="${!!S.fav[t.id]}" aria-label="${S.fav[t.id]?'Remove from favorites':'Add to favorites'}">${ICON_HEART}</button>
+      <button class="ico" data-act="addpl" data-id="${t.id}" aria-label="Add to a playlist">${ICON_LIST}</button></span></div>
     <div class="who"><button data-act="speaker" data-sp="${esc(t.speaker)}">${esc(t.speaker||'Unknown speaker')}</button>${t.role?` <span class="role">· ${esc(t.role)}</span>`:''}</div>
     ${t.summary?`<p class="sum">${esc(t.summary)}</p>`:''}
     ${tags?`<div class="tags">${tags}</div>`:''}
@@ -416,21 +462,94 @@ function viewHistory(){
     ${ids.length > S.hShown ? `<button class="btn ghost showmore" data-act="hmore">Show more</button>`:''}
     <div class="panel">
       <h4>Back up your history</h4>
-      <p>Your history is saved on this device. Copy your backup code and keep it somewhere safe (a note or an email to yourself). Paste it here on a new phone to bring your history over.</p>
+      <p>Your history, favorites and playlists are saved on this device. Copy your backup code and keep it somewhere safe (a note or an email to yourself). Paste it here on a new phone to bring your history over.</p>
       <div class="row"><button class="btn small" data-act="backup">Copy backup code</button><button class="btn small ghost" data-act="showrestore">Restore from a code</button></div>
       <div id="restoreBox" hidden class="filters" style="margin:0">
         <textarea id="restoreText" placeholder="Paste your backup code here"></textarea>
-        <button class="btn small" data-act="restore">Restore history</button>
+        <button class="btn small" data-act="restore">Restore</button>
       </div>
     </div>`;
 }
-function backupCode(){ return 'TALKS1:' + btoa(unescape(encodeURIComponent(JSON.stringify({l:S.listened, p:S.pos})))); }
+function backupCode(){ return 'TALKS1:' + btoa(unescape(encodeURIComponent(JSON.stringify({l:S.listened, p:S.pos, f:S.fav, pl:S.pls})))); }
 function restoreCode(txt){
   txt = (txt||'').trim(); const m = txt.match(/TALKS1:([A-Za-z0-9+/=]+)/); if (!m) return -1;
   try{ const j = JSON.parse(decodeURIComponent(escape(atob(m[1])))); let n = 0;
     for (const [k,v] of Object.entries(j.l||{})) if (!S.listened[k] && /^\d{4}-\d{2}-\d{2}$/.test(v)) { S.listened[k] = v; n++; }
     for (const [k,v] of Object.entries(j.p||{})) if (!S.pos[k] && !S.listened[k]) S.pos[k] = v;
+    for (const [k,v] of Object.entries(j.f||{})) if (!S.fav[k]) S.fav[k] = v;
+    for (const p of (j.pl||[])){ if (!p || !p.name || !Array.isArray(p.ids)) continue; const mine = S.pls.find(x => x.id===p.id || x.name===p.name);
+      if (mine) { for (const id of p.ids) if (!mine.ids.includes(id)) mine.ids.push(id); } else S.pls.push({id:p.id||('p'+Math.random().toString(36).slice(2,9)), name:String(p.name).slice(0,60), ids:p.ids.slice()}); }
     persist(); return n; }catch(e){ return -1; }
+}
+
+// ---------- favorites & playlists ----------
+const FAV = 'fav';
+function plById(pid){ return pid===FAV ? {id:FAV, name:'Favorites', ids:Object.entries(S.fav).sort((a,b)=>b[1].localeCompare(a[1])).map(x=>x[0])} : S.pls.find(p=>p.id===pid); }
+function toggleFav(id){ if (S.fav[id]) { delete S.fav[id]; toast('Removed from favorites'); } else { S.fav[id] = new Date().toISOString(); toast('Added to favorites'); } persist(); }
+function newPlaylist(name){ name = (name||'').trim().slice(0,60); if (!name) return null; const p = {id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), name, ids:[]}; S.pls.push(p); persist(); return p; }
+function playable(ids){ return ids.filter(id => BYID.has(id) && BYID.get(id).audio); }
+function playList(pid, startId){
+  const p = plById(pid); if (!p) return;
+  const ids = playable(p.ids); if (!ids.length){ toast('None of these talks can play in the app'); return; }
+  let i = startId ? Math.max(0, ids.indexOf(startId)) : 0;
+  if (!startId){ const j = ids.findIndex(id => !S.listened[id]); if (j >= 0) i = j; }
+  S.queue = {pid, name:p.name, ids, i}; persist(); loadTalk(ids[i], true); render(true);
+}
+function playNext(auto){
+  const q = S.queue; if (!q) return false;
+  const p = plById(q.pid); if (p) q.ids = playable(p.ids);
+  let i = q.ids.indexOf(S.nowId); i = (i < 0 ? q.i : i) + 1;
+  if (i >= q.ids.length){ S.queue = null; persist(); updateQueueUI(); toast('End of ' + q.name); return false; }
+  q.i = i; persist(); loadTalk(q.ids[i], true); render(true); return true;
+}
+function updateQueueUI(){
+  const q = S.queue, on = !!(q && q.ids.includes(S.nowId));
+  $('#pNext').hidden = !on; $('#pQueue').hidden = !on;
+  if (on){ const i = q.ids.indexOf(S.nowId); $('#pQueue').textContent = `${q.name} · ${i+1} of ${q.ids.length}`; }
+}
+function openSheet(id){
+  S.sheetId = id; const t = BYID.get(id); if (!t) return;
+  const opts = [`<label class="opt"><input type="checkbox" data-sheet="${FAV}"${S.fav[id]?' checked':''}><span>Favorites</span></label>`]
+    .concat(S.pls.map(p => `<label class="opt"><input type="checkbox" data-sheet="${p.id}"${p.ids.includes(id)?' checked':''}><span>${esc(p.name)}</span><span class="n" style="font-size:13px;color:var(--muted)">${p.ids.length}</span></label>`)).join('');
+  const bg = document.createElement('div'); bg.className = 'sheet-bg'; bg.id = 'sheet';
+  bg.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetH">
+    <h4 id="sheetH">Save to playlist</h4><p class="st">${esc(t.title)}</p>
+    <div>${opts}</div>
+    <div class="newpl"><input id="sheetNew" placeholder="New playlist name" maxlength="60" autocomplete="off"><button class="btn small" data-act="sheetcreate">Create</button></div>
+    <button class="btn ghost" data-act="sheetclose">Done</button></div>`;
+  document.body.appendChild(bg);
+}
+function closeSheet(){ const el = $('#sheet'); if (el) el.remove(); S.sheetId = null; render(true); }
+
+function viewSaved(){
+  if (S.openPl){
+    const p = plById(S.openPl); if (!p){ S.openPl = null; return viewSaved(); }
+    const list = p.ids.map(id => BYID.get(id)).filter(Boolean);
+    const nPlay = playable(p.ids).length, heard = list.filter(t => S.listened[t.id]).length;
+    const isFav = p.id === FAV;
+    const cards = list.map((t, i) => cardHTML(t, isFav ? '' : `<div class="reorder">
+        <button class="ico" data-act="plup" data-id="${t.id}" aria-label="Move up"${i===0?' disabled':''}>${ICON_UP}</button>
+        <button class="ico" data-act="pldown" data-id="${t.id}" aria-label="Move down"${i===list.length-1?' disabled':''}>${ICON_DOWN}</button>
+        <span class="spacer" style="flex:1"></span>
+        <button class="btn small ghost" data-act="plremove" data-id="${t.id}">Remove</button></div>`)).join('');
+    return `<button class="back" data-act="plback">‹ Saved</button>
+      <h2 class="view-title">${esc(p.name)}</h2>
+      <p class="sub">${list.length} talk${list.length===1?'':'s'} · ${heard} listened${nPlay < list.length ? ` · ${nPlay} play in the app` : ''}</p>
+      <div class="pl-tools">
+        ${nPlay ? `<button class="btn small" data-act="plplay">${ICON_PLAY}Play all</button>` : ''}
+        ${isFav ? '' : `<button class="btn small ghost" data-act="plrename">Rename</button>
+        <button class="btn small danger${S.delArmed?' armed':''}" data-act="pldelete">${S.delArmed?'Tap again to delete':'Delete playlist'}</button>`}
+      </div>
+      <div id="renameBox" hidden class="newpl" style="margin:0 0 14px"><input id="renameIn" value="${esc(p.name)}" maxlength="60"><button class="btn small" data-act="plrenamesave">Save</button></div>
+      <div class="list">${cards || `<div class="empty">${isFav ? 'Tap the heart on any talk to add it here.' : 'Tap the playlist button on any talk to add it here.'}</div>`}</div>`;
+  }
+  const favN = Object.keys(S.fav).length;
+  const rows = [`<button class="pl" data-act="plopen" data-pl="${FAV}"><span class="plico fav">${ICON_HEART}</span><span class="nm">Favorites</span><span class="n">${favN} talk${favN===1?'':'s'}</span></button>`]
+    .concat(S.pls.map(p => `<button class="pl" data-act="plopen" data-pl="${p.id}"><span class="plico">${ICON_PL}</span><span class="nm">${esc(p.name)}</span><span class="n">${p.ids.length} talk${p.ids.length===1?'':'s'}</span></button>`)).join('');
+  return `<h2 class="view-title">Saved</h2>
+    <p class="sub">Your favorites and playlists. Play a playlist and it moves on to the next talk by itself.</p>
+    <div class="pls">${rows}</div>
+    <div class="newpl"><input id="newPl" placeholder="New playlist name" maxlength="60" autocomplete="off"><button class="btn small" data-act="plcreate">Create</button></div>`;
 }
 
 // ---------- render ----------
@@ -440,19 +559,37 @@ function render(keepFocus){
   const y = window.scrollY;
   const active = keepFocus && document.activeElement && document.activeElement.id;
   const sel = active && document.activeElement.selectionStart;
-  v.innerHTML = S.tab==='shuffle' ? viewShuffle() : S.tab==='search' ? viewSearch() : S.tab==='speakers' ? viewSpeakers() : viewHistory();
+  v.innerHTML = S.tab==='shuffle' ? viewShuffle() : S.tab==='search' ? viewSearch() : S.tab==='speakers' ? viewSpeakers() : S.tab==='saved' ? viewSaved() : viewHistory();
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.tab===S.tab ? 'page':'false'));
   if (active){ const el = document.getElementById(active); if (el){ el.focus(); try{ if(sel!=null) el.setSelectionRange(sel,sel);}catch(e){} } }
   if (keepFocus) window.scrollTo(0, y);
 }
 function go(tab){ S.tab = tab; render(); window.scrollTo(0,0); }
 
-document.querySelector('nav.tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { if (b.dataset.tab==='speakers' && S.tab==='speakers') S.speaker=null; go(b.dataset.tab); } });
+document.querySelector('nav.tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { if (b.dataset.tab==='speakers' && S.tab==='speakers') S.speaker=null; if (b.dataset.tab==='saved' && S.tab==='saved') S.openPl=null; go(b.dataset.tab); } });
 
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const act = el.dataset.act, id = el.dataset.id;
-  if (act==='play'){ if (S.nowId===id && !audio.paused) audio.pause(); else loadTalk(id, true); return; }
+  if (act==='play'){ if (S.nowId===id && !audio.paused) audio.pause();
+    else if (S.tab==='saved' && S.openPl && plById(S.openPl) && plById(S.openPl).ids.includes(id)) playList(S.openPl, id);
+    else { if (S.queue && !S.queue.ids.includes(id)) S.queue = null; loadTalk(id, true); } return; }
+  if (act==='fav'){ toggleFav(id); render(true); return; }
+  if (act==='addpl'){ openSheet(id); return; }
+  if (act==='sheetclose'){ closeSheet(); return; }
+  if (act==='sheetcreate'){ const p = newPlaylist($('#sheetNew').value); if (!p) { $('#sheetNew').focus(); return; } p.ids.push(S.sheetId); persist(); toast('Added to ' + p.name); const sid = S.sheetId; $('#sheet').remove(); openSheet(sid); return; }
+  if (act==='plopen'){ S.openPl = el.dataset.pl; S.delArmed = false; render(); window.scrollTo(0,0); return; }
+  if (act==='plback'){ S.openPl = null; S.delArmed = false; render(); return; }
+  if (act==='plcreate'){ const p = newPlaylist($('#newPl').value); if (!p){ $('#newPl').focus(); return; } toast('Created ' + p.name); render(true); return; }
+  if (act==='plplay'){ playList(S.openPl); return; }
+  if (act==='plrename'){ $('#renameBox').hidden = false; $('#renameIn').focus(); return; }
+  if (act==='plrenamesave'){ const p = plById(S.openPl), v = $('#renameIn').value.trim().slice(0,60); if (p && v && p.id!==FAV){ p.name = v; persist(); toast('Renamed'); } render(); return; }
+  if (act==='pldelete'){ if (!S.delArmed){ S.delArmed = true; render(true); setTimeout(()=>{ if (S.delArmed){ S.delArmed=false; if (S.tab==='saved') render(true); } }, 4000); return; }
+    S.pls = S.pls.filter(p => p.id !== S.openPl); if (S.queue && S.queue.pid===S.openPl) S.queue = null; S.openPl = null; S.delArmed = false; persist(); toast('Playlist deleted'); render(); return; }
+  if (act==='plremove' || act==='plup' || act==='pldown'){ const p = plById(S.openPl); if (!p || p.id===FAV) return; const i = p.ids.indexOf(id); if (i<0) return;
+    if (act==='plremove'){ p.ids.splice(i,1); toast('Removed from ' + p.name); }
+    else { const j = act==='plup' ? i-1 : i+1; if (j<0 || j>=p.ids.length) return; [p.ids[i], p.ids[j]] = [p.ids[j], p.ids[i]]; }
+    persist(); render(true); return; }
   if (act==='start'){ S.started[id] = today(); persist(); setTimeout(()=>render(true), 300); return; }
   if (act==='mark'){ markListened(id); render(true); return; }
   if (act==='unmark'){ delete S.listened[id]; persist(); toast('Removed from listened'); render(true); return; }
@@ -472,8 +609,13 @@ document.addEventListener('click', async e => {
     try{ await navigator.clipboard.writeText(code); toast('Backup code copied'); }
     catch(err){ $('#restoreBox').hidden = false; const ta = $('#restoreText'); ta.value = code; ta.select(); toast('Select and copy the code below'); } return; }
   if (act==='showrestore'){ $('#restoreBox').hidden = false; $('#restoreText').value=''; $('#restoreText').focus(); return; }
-  if (act==='restore'){ const n = restoreCode($('#restoreText').value); if (n < 0) toast("That doesn't look like a backup code"); else { toast(n + ' talk' + (n===1?'':'s') + ' restored'); render(); } return; }
+  if (act==='restore'){ const n = restoreCode($('#restoreText').value); if (n < 0) toast("That doesn't look like a backup code"); else { toast(n + ' listened talk' + (n===1?'':'s') + ' restored, plus favorites and playlists'); render(); } return; }
 });
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter'){ const m = {newPl:'plcreate', sheetNew:'sheetcreate', renameIn:'plrenamesave'}[e.target.id]; if (m){ e.preventDefault(); document.querySelector(`[data-act="${m}"]`).click(); } }
+  if (e.key==='Escape' && $('#sheet')) closeSheet();
+});
+document.addEventListener('click', e => { if (e.target.id==='sheet') closeSheet(); });
 let qTimer;
 document.addEventListener('input', e => {
   const el = e.target;
@@ -483,6 +625,10 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const el = e.target;
+  if (el.dataset.sheet && S.sheetId){ const pid = el.dataset.sheet, id = S.sheetId;
+    if (pid===FAV){ if (el.checked) S.fav[id] = new Date().toISOString(); else delete S.fav[id]; }
+    else { const p = S.pls.find(x=>x.id===pid); if (p){ if (el.checked && !p.ids.includes(id)) p.ids.push(id); if (!el.checked) p.ids = p.ids.filter(x=>x!==id); } }
+    persist(); return; }
   if (el.id==='shTheme'){ S.theme = el.value; persist(); doShuffle(); render(true); }
   else if (el.id==='qTheme'){ S.qTheme = el.value; S.qShown=40; render(true); }
   else if (el.id==='qSort'){ S.qSort = el.value; render(true); }
@@ -500,7 +646,7 @@ fetch('talks.json').then(r => r.json()).then(j => {
   for (const t of TALKS) BYID.set(t.id, t);
   buildSpeakers();
   $('#meta').innerHTML = `${TALKS.length.toLocaleString()} talks<br>updated ${fmtDate(BUILT)}`;
-  const h = (location.hash||'').slice(1); if (['shuffle','search','speakers','history'].includes(h)) S.tab = h;
+  const h = (location.hash||'').slice(1); if (['shuffle','search','speakers','saved','history'].includes(h)) S.tab = h;
   render();
   if (S.nowId && BYID.has(S.nowId)) loadTalk(S.nowId, false);
 }).catch(() => { $('#view').innerHTML = '<div class="empty">The talk list didn\'t load. Check your connection and reopen the app.</div>'; $('#meta').textContent=''; });

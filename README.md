@@ -8,3 +8,7 @@ A phone-friendly app for listening to General Conference and BYU, BYU–Idaho, B
 - **Listened** history with the date, saved on each person's own device, with a backup code to move it to a new phone
 
 Audio streams from the Church's and each university's own websites; nothing is copied here. `talks.json` is the index of titles, speakers, dates, and links, and `merge.py` builds it.
+
+## Updating
+
+See `refresh/REFRESH.md`. Raw collected data lives in `raw/`; `merge.py` builds `talks.json` from it.
