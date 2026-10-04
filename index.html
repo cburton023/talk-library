@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Talk Library</title>
+<meta name="description" content="General Conference and BYU, BYU–Idaho, BYU–Hawaii and BYU–Pathway talks since 1990.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Talks">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1422" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one-column phone app — sticky header, view area, mini player docked above a fixed bottom tab bar. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --ink:#18213a; --muted:#5d6782; --line:#d9dee8;
+  --accent:#1f3a8a; --accent-ink:#ffffff; --gold:#a8801c; --gold-soft:#f4ead0;
+  --ok:#2f7a4c; --ok-soft:#e1f1e6; --track:#d9dee8;
+  --gc:#1f3a8a; --byu:#0b5fa5; --byui:#8a6a12; --byuh:#a3243b; --path:#5b3d8f;
+  --display:"Literata",Georgia,"Times New Roman",serif;
+  --body:"Figtree",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --r:14px; --tabh:58px; --playerh:0px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f1422; --surface:#182033; --ink:#e8ecf5; --muted:#9aa4bd; --line:#2a3550;
+  --accent:#8fb0ff; --accent-ink:#0f1422; --gold:#e0b84f; --gold-soft:#3a3120;
+  --ok:#6fcf97; --ok-soft:#1d3428; --track:#2a3550;
+  --gc:#8fb0ff; --byu:#6ab4f0; --byui:#e0b84f; --byuh:#f08a9c; --path:#c0a4ef; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%;padding-top:env(safe-area-inset-top,0px)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:0 calc(var(--tabh) + var(--playerh) + 34px + env(safe-area-inset-bottom,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}
+header.top h1{font:600 22px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+header.top .meta{font-size:12px;color:var(--muted);text-align:right}
+h2.view-title{font:600 26px/1.15 var(--display);margin:18px 0 4px;text-wrap:balance}
+h3.sec{font:600 13px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+
+/* tab bar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--tabh)}
+nav.tabs button{background:none;border:0;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
+nav.tabs button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+
+/* mini player */
+.player{position:fixed;left:0;right:0;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px));z-index:9;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(10,20,40,.08)}
+.player .in{max-width:720px;margin:0 auto;padding:10px 16px 10px;display:grid;gap:8px}
+.player .row1{display:flex;align-items:center;gap:12px;min-width:0}
+.player .info{flex:1;min-width:0}
+.player .pt{font:600 15px/1.25 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player .ps{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbtn{background:none;border:0;padding:6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink)}
+.pbtn svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pbtn.main{background:var(--accent);color:var(--accent-ink);width:46px;height:46px}
+.pbtn.main svg{width:22px;height:22px}
+.pbtn.speed{font-size:13px;font-weight:700;border:1px solid var(--line);padding:5px 8px;min-width:48px;font-variant-numeric:tabular-nums}
+.player .row2{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.player input[type=range]{flex:1;accent-color:var(--accent);height:24px;min-width:0}
+.player .row3{display:flex;justify-content:center;gap:18px;align-items:center}
+.player .skip{font-size:11px;font-weight:700;display:inline-flex;flex-direction:column;align-items:center;gap:0;color:var(--muted)}
+.player .skip svg{width:24px;height:24px}
+
+/* controls */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:500;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.field label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+input[type=search],select,input[type=number],input[type=date],textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;font-size:16px;min-width:0}
+.filters{display:grid;gap:12px;margin-bottom:14px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:16px;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn.small{padding:8px 12px;font-size:14px;border-radius:10px}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn.playing{background:var(--gold);color:#fff}
+.shuffle-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:6px 0 14px;flex-wrap:wrap}
+.shuffle-bar .btn{flex:1;min-width:180px;padding:14px 18px;font-size:17px}
+.pool{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+details.more{margin-bottom:12px}
+details.more summary{font-size:14px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 0}
+details.more[open] summary{margin-bottom:10px}
+
+/* talk cards */
+.list{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 12px;display:grid;gap:8px;min-width:0}
+.card.done{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.card .top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.src{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c,var(--accent))}
+.src::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:currentColor;margin-right:6px;vertical-align:1px}
+.date{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card h3{font:600 19px/1.25 var(--display);margin:0;text-wrap:balance;overflow-wrap:anywhere}
+.card .who{font-size:15px;font-weight:600}
+.card .who button{background:none;border:0;padding:0;font-weight:600;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;text-align:left}
+.card .role{font-weight:400;color:var(--muted);font-size:13px}
+.card .sum{font-size:14px;color:var(--muted);margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.prog{height:4px;border-radius:2px;background:var(--track);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--gold)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;border-radius:6px;padding:2px 8px;background:var(--bg);color:var(--muted);border:0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.listened{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ok);background:var(--ok-soft);border-radius:999px;padding:6px 10px;border:0}
+.listened svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.4}
+.mark{border:1px dashed var(--line);background:none;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:600;color:var(--muted)}
+.mark.nudge{border-style:solid;border-color:var(--gold);color:var(--gold);background:var(--gold-soft)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:24px 18px;text-align:center;color:var(--muted)}
+.showmore{margin:14px auto 0;display:flex}
+
+/* speakers */
+.speakers{display:grid;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.speakers button{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;font-size:16px;min-width:0}
+.speakers button:last-child{border-bottom:0}
+.speakers .n{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.back{background:none;border:0;color:var(--accent);font-weight:600;padding:12px 0 0;display:inline-flex;gap:6px;align-items:center}
+
+/* history */
+.hist-stats{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 14px;font-size:14px;color:var(--muted)}
+.hist-stats b{font:600 22px/1 var(--display);color:var(--ink);display:block}
+.datefix{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.datefix input{width:auto;padding:6px 8px;font-size:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;gap:10px;margin-top:22px}
+.panel h4{margin:0;font:600 17px/1.2 var(--display)}
+.panel p{margin:0;font-size:14px;color:var(--muted)}
+.panel textarea{font-size:13px;min-height:84px;font-family:ui-monospace,Menlo,monospace}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabh) + var(--playerh) + 18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1}
+.loading{padding:40px 0;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Talk Library</h1>
+    <div class="meta" id="meta">Loading talks…</div>
+  </header>
+  <main id="view"><div class="loading">Loading talks…</div></main>
+</div>
+
+<section class="player" id="player" hidden aria-label="Now playing">
+  <div class="in">
+    <div class="row1">
+      <div class="info"><div class="pt" id="pTitle"></div><div class="ps" id="pSpeaker"></div></div>
+      <button class="pbtn speed" id="pSpeed" aria-label="Playback speed">1×</button>
+      <button class="pbtn main" id="pPlay" aria-label="Play"><svg viewBox="0 0 24 24" id="pIcon"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></svg></button>
+      <button class="pbtn" id="pClose" aria-label="Close player"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="row2">
+      <button class="pbtn skip" id="pBack" aria-label="Back 15 seconds"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <span id="pCur">0:00</span>
+      <input type="range" id="pSeek" min="0" max="1000" value="0" aria-label="Position in talk">
+      <span id="pDur">0:00</span>
+      <button class="pbtn skip" id="pFwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    </div>
+  </div>
+</section>
+<audio id="audio" preload="metadata" playsinline></audio>
+
+<nav class="tabs" aria-label="Sections"><div class="in">
+  <button data-tab="shuffle" aria-current="page"><svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle</button>
+  <button data-tab="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</button>
+  <button data-tab="speakers"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Speakers</button>
+  <button data-tab="history"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Listened</button>
+</div></nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS_KEY = 'talklib.v2';
+const ICON_CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" fill="currentColor" stroke="none"/></svg>';
+const ICON_OPEN = '<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>';
+const SPEEDS = [1, 1.25, 1.5, 1.75, 2, 0.75];
+const DONE_AT = 0.9;
+
+let TALKS = [], BYID = new Map(), THEMES = [], SOURCES = {}, BUILT = '';
+const S = { tab:'shuffle', listened:{}, started:{}, pos:{}, speed:1, nowId:null, srcOn:null, theme:'', current:[], recent:[],
+  q:'', qSrc:null, qTheme:'', qFrom:'', qTo:'', qHide:false, qSort:'new', qShown:40,
+  spQ:'', spSort:'count', speaker:null, spShown:40, hShown:40 };
+
+// ---------- persistence (this device) ----------
+function loadLocal(){ try{ const j = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+  S.listened = j.listened||{}; S.started = j.started||{}; S.pos = j.pos||{}; S.speed = j.speed||1; S.nowId = j.nowId||null;
+  if (j.srcOn) S.srcOn = j.srcOn; if (j.theme) S.theme = j.theme; }catch(e){} }
+function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({listened:S.listened, started:S.started, pos:S.pos, speed:S.speed, nowId:S.nowId, srcOn:S.srcOn, theme:S.theme})); }catch(e){} }
+try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+
+// ---------- helpers ----------
+const today = () => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(iso){ if(!iso) return ''; const [y,m,d] = iso.split('-').map(Number); return `${MONTHS[m-1]} ${d}, ${y}`; }
+function talkDate(t){ return t.src==='gc' ? (Number(t.date.slice(5,7))<=6 ? 'April ' : 'October ') + t.date.slice(0,4) : fmtDate(t.date); }
+function fmtTime(s){ s = Math.max(0, Math.floor(s||0)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = String(s%60).padStart(2,'0'); return h ? `${h}:${String(m).padStart(2,'0')}:${x}` : `${m}:${x}`; }
+function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(()=>el.classList.remove('on'), 2400); }
+function srcName(s){ return SOURCES[s] || s; }
+function lastName(n){ const p = n.replace(/,?\s+(jr\.?|sr\.?|iii|ii|iv)$/i,'').split(' '); return (p[p.length-1]||'').toLowerCase(); }
+function markListened(id, quiet){ if (S.listened[id]) return; S.listened[id] = today(); delete S.started[id]; delete S.pos[id]; persist(); if(!quiet) toast('Marked as listened'); }
+
+// ---------- player ----------
+const audio = $('#audio');
+let lastSave = 0;
+function setPlayerVisible(on){ $('#player').hidden = !on; document.documentElement.style.setProperty('--playerh', on ? ($('#player').offsetHeight||112)+'px' : '0px'); }
+function loadTalk(id, autoplay){
+  const t = BYID.get(id); if (!t || !t.audio) return;
+  if (S.nowId !== id || !audio.src){
+    S.nowId = id; audio.src = t.audio; audio.playbackRate = S.speed;
+    const resume = S.pos[id] && S.pos[id].t > 5 ? S.pos[id].t - 3 : 0;
+    if (resume){ const seek = () => { try{ audio.currentTime = resume; }catch(e){} audio.removeEventListener('loadedmetadata', seek); }; audio.addEventListener('loadedmetadata', seek); }
+  }
+  $('#pTitle').textContent = t.title; $('#pSpeaker').textContent = t.speaker + ' · ' + talkDate(t);
+  $('#pSpeed').textContent = S.speed + '×';
+  setPlayerVisible(true);
+  if (!S.started[id] && !S.listened[id]) S.started[id] = today();
+  persist();
+  if ('mediaSession' in navigator){
+    navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.speaker, album: srcName(t.src) + ' · ' + talkDate(t), artwork: [{src:'icon-512.png', sizes:'512x512', type:'image/png'}] });
+  }
+  if (autoplay) audio.play().catch(()=>{});
+}
+function updatePlayIcon(){ const playing = !audio.paused; $('#pPlay').innerHTML = playing ? ICON_PAUSE.replace('<svg','<svg id="pIcon"') : ICON_PLAY; $('#pPlay').setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  document.querySelectorAll('[data-act="play"]').forEach(b => { const on = b.dataset.id===S.nowId && playing; b.classList.toggle('playing', on); b.innerHTML = (on?ICON_PAUSE:ICON_PLAY) + (on?'Pause':(S.pos[b.dataset.id]?'Resume':'Play')); }); }
+audio.addEventListener('play', updatePlayIcon); audio.addEventListener('pause', () => { updatePlayIcon(); savePos(true); });
+audio.addEventListener('timeupdate', () => {
+  const d = audio.duration, c = audio.currentTime;
+  if (isFinite(d) && d > 0){ $('#pSeek').value = Math.round(c/d*1000); $('#pDur').textContent = fmtTime(d); }
+  $('#pCur').textContent = fmtTime(c);
+  savePos(false);
+  if (S.nowId && isFinite(d) && d > 60 && c/d >= DONE_AT && !S.listened[S.nowId]){ markListened(S.nowId); if (S.tab!=='search') render(true); }
+});
+audio.addEventListener('ended', () => { if (S.nowId){ markListened(S.nowId, !!S.listened[S.nowId]); delete S.pos[S.nowId]; persist(); render(true); } });
+audio.addEventListener('error', () => { if (audio.src) toast('This recording could not be loaded. Try "Open talk" instead.'); });
+function savePos(force){ if (!S.nowId || S.listened[S.nowId]) return; const now = Date.now(); if (!force && now - lastSave < 5000) return; lastSave = now;
+  const d = audio.duration; S.pos[S.nowId] = { t: Math.floor(audio.currentTime), d: isFinite(d) ? Math.floor(d) : 0 }; persist(); }
+$('#pPlay').onclick = () => audio.paused ? audio.play().catch(()=>{}) : audio.pause();
+$('#pBack').onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 15); };
+$('#pFwd').onclick = () => { audio.currentTime = Math.min(audio.duration||1e9, audio.currentTime + 15); };
+$('#pSpeed').onclick = () => { S.speed = SPEEDS[(SPEEDS.indexOf(S.speed)+1) % SPEEDS.length]; audio.playbackRate = S.speed; $('#pSpeed').textContent = S.speed + '×'; persist(); };
+$('#pSeek').oninput = e => { const d = audio.duration; if (isFinite(d)) audio.currentTime = e.target.value/1000*d; };
+$('#pClose').onclick = () => { savePos(true); audio.pause(); audio.removeAttribute('src'); audio.load(); S.nowId = null; persist(); setPlayerVisible(false); render(true); };
+if ('mediaSession' in navigator){
+  const ms = navigator.mediaSession;
+  try{ ms.setActionHandler('play', () => audio.play()); ms.setActionHandler('pause', () => audio.pause());
+    ms.setActionHandler('seekbackward', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
+    ms.setActionHandler('seekforward', () => { audio.currentTime = audio.currentTime + 15; });
+    ms.setActionHandler('seekto', e => { if (e.seekTime != null) audio.currentTime = e.seekTime; }); }catch(e){}
+}
+window.addEventListener('pagehide', () => savePos(true));
+document.addEventListener('visibilitychange', () => { if (document.hidden) savePos(true); });
+
+// ---------- card ----------
+function cardHTML(t, extra=''){
+  const done = S.listened[t.id];
+  const started = S.started[t.id] && !done;
+  const p = S.pos[t.id];
+  const tags = t.themes.slice(0,3).map(i => `<button class="tag" data-act="theme" data-theme="${esc(THEMES[i])}">${esc(THEMES[i])}</button>`).join('');
+  const isNow = S.nowId === t.id && !audio.paused;
+  const listen = t.audio
+    ? `<button class="btn small${isNow?' playing':''}" data-act="play" data-id="${t.id}">${isNow?ICON_PAUSE+'Pause':ICON_PLAY+(p?'Resume':'Play')}</button>
+       <a class="btn small ghost" href="${esc(t.url)}" target="_blank" rel="noopener">${ICON_OPEN}Open talk</a>`
+    : `<a class="btn small" href="${esc(t.url)}" target="_blank" rel="noopener" data-act="start" data-id="${t.id}">${ICON_OPEN}${t.src==='byuh'?'Watch or read':'Open talk'}</a>`;
+  const mark = done
+    ? `<button class="listened" data-act="unmark" data-id="${t.id}" title="Tap to undo">${ICON_CHECK}Listened on ${fmtDate(done)}</button>`
+    : `<button class="mark${started?' nudge':''}" data-act="mark" data-id="${t.id}">${started && !t.audio ?'Finished? Mark listened':'Mark listened'}</button>`;
+  const bar = p && p.d ? `<div class="prog" title="${fmtTime(p.t)} of ${fmtTime(p.d)}"><i style="width:${Math.min(100,Math.round(p.t/p.d*100))}%"></i></div>` : '';
+  return `<article class="card${done?' done':''}" style="--c:var(--${t.src})">
+    <div class="top"><span class="src">${esc(srcName(t.src))}${t.kind && !/conference/i.test(t.kind) ? ' · '+esc(t.kind) : ''}</span><span class="date">${esc(talkDate(t))}</span></div>
+    <h3>${esc(t.title)}</h3>
+    <div class="who"><button data-act="speaker" data-sp="${esc(t.speaker)}">${esc(t.speaker||'Unknown speaker')}</button>${t.role?` <span class="role">· ${esc(t.role)}</span>`:''}</div>
+    ${t.summary?`<p class="sum">${esc(t.summary)}</p>`:''}
+    ${tags?`<div class="tags">${tags}</div>`:''}
+    ${bar}${extra}
+    <div class="actions">${listen}${mark}</div>
+  </article>`;
+}
+
+// ---------- shuffle ----------
+function srcEnabled(s){ return !S.srcOn || S.srcOn.includes(s); }
+function shufflePool(){
+  const th = S.theme ? THEMES.indexOf(S.theme) : -1;
+  return TALKS.filter(t => !S.listened[t.id] && srcEnabled(t.src) && (th<0 || t.themes.includes(th)));
+}
+function doShuffle(){
+  const pool = shufflePool();
+  const recent = new Set(S.recent);
+  let cand = pool.filter(t => !recent.has(t.id));
+  if (cand.length < 4) { cand = pool; S.recent = []; }
+  const pick = [], used = new Set();
+  while (pick.length < 4 && used.size < cand.length){
+    const t = cand[Math.floor(Math.random()*cand.length)];
+    if (used.has(t.id)) continue; used.add(t.id); pick.push(t.id);
+  }
+  S.current = pick; S.recent = S.recent.concat(pick).slice(-300);
+}
+function viewShuffle(){
+  if (!S.current.length || S.current.some(id => !BYID.has(id))) doShuffle();
+  const pool = shufflePool().length;
+  const chips = Object.keys(SOURCES).map(s => `<button class="chip" data-act="src" data-src="${s}" aria-pressed="${srcEnabled(s)}">${esc(SOURCES[s])}</button>`).join('');
+  const themeOpts = ['<option value="">Any topic</option>'].concat(THEMES.map(n=>`<option${n===S.theme?' selected':''}>${esc(n)}</option>`)).join('');
+  const cards = S.current.map(id => BYID.get(id)).filter(Boolean);
+  const inProg = Object.keys(S.pos).filter(id => BYID.has(id) && !S.listened[id] && S.pos[id].t > 30).slice(-3).reverse().map(id=>BYID.get(id));
+  return `${inProg.length ? `<h3 class="sec">Pick up where you left off</h3><div class="list">${inProg.map(t=>cardHTML(t)).join('')}</div>` : ''}
+  <h2 class="view-title">Four talks for you</h2>
+  <p class="sub">Talks you've listened to won't come up again.</p>
+  <div class="shuffle-bar"><button class="btn" data-act="shuffle"><svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle again</button>
+  <span class="pool">${pool.toLocaleString()} unheard talks in the mix</span></div>
+  <details class="more"${S.theme || S.srcOn ? ' open':''}><summary>Narrow the shuffle</summary>
+    <div class="filters">
+      <div class="chips" role="group" aria-label="Sources">${chips}</div>
+      <div class="field"><label for="shTheme">Topic</label><select id="shTheme">${themeOpts}</select></div>
+    </div>
+  </details>
+  <div class="list">${cards.length ? cards.map(t=>cardHTML(t)).join('') : `<div class="empty">No unheard talks match these filters. Turn on more sources or pick a different topic.</div>`}</div>`;
+}
+
+// ---------- search ----------
+function searchResults(){
+  const toks = S.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const th = S.qTheme ? THEMES.indexOf(S.qTheme) : -1;
+  const from = S.qFrom ? String(S.qFrom) : '', to = S.qTo ? String(S.qTo) : '';
+  let res = TALKS.filter(t => {
+    if (S.qSrc && !S.qSrc.includes(t.src)) return false;
+    if (th>=0 && !t.themes.includes(th)) return false;
+    if (S.qHide && S.listened[t.id]) return false;
+    const y = t.date.slice(0,4); if (from && y < from) return false; if (to && y > to) return false;
+    for (const k of toks) if (!t.hay.includes(k)) return false;
+    return true;
+  });
+  if (S.qSort==='old') res = res.slice().reverse();
+  else if (S.qSort==='rel' && toks.length){
+    const score = t => toks.reduce((a,k)=> a + (t.title.toLowerCase().includes(k)?3:0) + (t.speaker.toLowerCase().includes(k)?2:0), 0);
+    res = res.map(t=>[score(t),t]).sort((a,b)=>b[0]-a[0]).map(x=>x[1]);
+  }
+  return res;
+}
+function viewSearch(){
+  const chips = Object.keys(SOURCES).map(s => `<button class="chip" data-act="qsrc" data-src="${s}" aria-pressed="${!S.qSrc || S.qSrc.includes(s)}">${esc(SOURCES[s])}</button>`).join('');
+  const themeOpts = ['<option value="">Any topic</option>'].concat(THEMES.map(n=>`<option${n===S.qTheme?' selected':''}>${esc(n)}</option>`)).join('');
+  const res = searchResults();
+  const shown = res.slice(0, S.qShown);
+  return `<h2 class="view-title">Search</h2>
+  <div class="filters">
+    <div class="field"><label for="q">Topic, title, or speaker</label><input type="search" id="q" placeholder="e.g. hope, Holland, temple" value="${esc(S.q)}" autocomplete="off"></div>
+    <div class="field"><label for="qTheme">Topic</label><select id="qTheme">${themeOpts}</select></div>
+    <div class="chips" role="group" aria-label="Sources">${chips}</div>
+    <div class="row">
+      <div class="field"><label for="qFrom">From year</label><input type="number" id="qFrom" inputmode="numeric" min="1990" max="2030" placeholder="1990" value="${esc(S.qFrom)}"></div>
+      <div class="field"><label for="qTo">To year</label><input type="number" id="qTo" inputmode="numeric" min="1990" max="2030" placeholder="${new Date().getFullYear()}" value="${esc(S.qTo)}"></div>
+      <div class="field"><label for="qSort">Sort</label><select id="qSort"><option value="new"${S.qSort==='new'?' selected':''}>Newest</option><option value="old"${S.qSort==='old'?' selected':''}>Oldest</option><option value="rel"${S.qSort==='rel'?' selected':''}>Best match</option></select></div>
+    </div>
+    <label class="row" style="font-size:14px;color:var(--muted)"><input type="checkbox" id="qHide"${S.qHide?' checked':''}> Hide talks I've listened to</label>
+  </div>
+  <p class="pool">${res.length.toLocaleString()} talk${res.length===1?'':'s'}</p>
+  <div class="list">${shown.length ? shown.map(t=>cardHTML(t)).join('') : '<div class="empty">No talks match. Try fewer words or a wider year range.</div>'}</div>
+  ${res.length > shown.length ? `<button class="btn ghost showmore" data-act="qmore">Show more (${(res.length-shown.length).toLocaleString()} left)</button>`:''}`;
+}
+
+// ---------- speakers ----------
+let SPEAKERS = [];
+function buildSpeakers(){
+  const m = new Map();
+  for (const t of TALKS){ if(!t.speaker) continue; const e = m.get(t.speaker) || {name:t.speaker, n:0}; e.n++; m.set(t.speaker,e); }
+  SPEAKERS = [...m.values()];
+}
+function viewSpeakers(){
+  if (S.speaker){
+    const list = TALKS.filter(t => t.speaker === S.speaker);
+    const heard = list.filter(t => S.listened[t.id]).length;
+    const shown = list.slice(0, S.spShown);
+    return `<button class="back" data-act="spback">‹ All speakers</button>
+      <h2 class="view-title">${esc(S.speaker)}</h2>
+      <p class="sub">${list.length} talk${list.length===1?'':'s'} · ${heard} listened</p>
+      <div class="list">${shown.map(t=>cardHTML(t)).join('')}</div>
+      ${list.length > shown.length ? `<button class="btn ghost showmore" data-act="spmore">Show more</button>`:''}`;
+  }
+  const q = S.spQ.toLowerCase();
+  let list = SPEAKERS.filter(s => !q || s.name.toLowerCase().includes(q));
+  list.sort(S.spSort==='az' ? (a,b)=> lastName(a.name).localeCompare(lastName(b.name)) || a.name.localeCompare(b.name) : (a,b)=> b.n-a.n || a.name.localeCompare(b.name));
+  const shown = list.slice(0, Math.max(S.spShown, 60));
+  return `<h2 class="view-title">Speakers</h2>
+    <div class="filters"><div class="row">
+      <div class="field" style="flex:2"><label for="spQ">Find a speaker</label><input type="search" id="spQ" placeholder="e.g. Eyring" value="${esc(S.spQ)}" autocomplete="off"></div>
+      <div class="field" style="flex:0 0 132px"><label for="spSort">Sort</label><select id="spSort"><option value="count"${S.spSort==='count'?' selected':''}>Most talks</option><option value="az"${S.spSort==='az'?' selected':''}>Last name A–Z</option></select></div>
+    </div></div>
+    <p class="pool">${list.length.toLocaleString()} speakers</p>
+    <div class="speakers">${shown.map(s=>`<button data-act="speaker" data-sp="${esc(s.name)}"><span>${esc(s.name)}</span><span class="n">${s.n} talk${s.n===1?'':'s'}</span></button>`).join('') || '<div class="empty">No speaker by that name.</div>'}</div>
+    ${list.length > shown.length ? `<button class="btn ghost showmore" data-act="spmoreAll">Show more (${(list.length-shown.length).toLocaleString()} left)</button>`:''}`;
+}
+
+// ---------- history ----------
+function viewHistory(){
+  const ids = Object.entries(S.listened).sort((a,b)=> b[1].localeCompare(a[1]));
+  const yr = String(new Date().getFullYear());
+  const thisYear = ids.filter(([,d]) => d.startsWith(yr)).length;
+  const items = ids.slice(0, S.hShown).map(([id,d]) => { const t = BYID.get(id); if(!t) return '';
+    return cardHTML(t, `<div class="datefix"><label for="d_${id}">Listened on</label><input type="date" id="d_${id}" data-act="redate" data-id="${id}" value="${d}"></div>`); }).join('');
+  return `<h2 class="view-title">Listened</h2>
+    <div class="hist-stats"><div><b>${ids.length.toLocaleString()}</b>talks heard</div><div><b>${thisYear}</b>in ${yr}</div><div><b>${(TALKS.length-ids.length).toLocaleString()}</b>still to hear</div></div>
+    <div class="list">${items || '<div class="empty">Nothing here yet. Talks you finish, or mark as listened, show up here with the date.</div>'}</div>
+    ${ids.length > S.hShown ? `<button class="btn ghost showmore" data-act="hmore">Show more</button>`:''}
+    <div class="panel">
+      <h4>Back up your history</h4>
+      <p>Your history is saved on this device. Copy your backup code and keep it somewhere safe (a note or an email to yourself). Paste it here on a new phone to bring your history over.</p>
+      <div class="row"><button class="btn small" data-act="backup">Copy backup code</button><button class="btn small ghost" data-act="showrestore">Restore from a code</button></div>
+      <div id="restoreBox" hidden class="filters" style="margin:0">
+        <textarea id="restoreText" placeholder="Paste your backup code here"></textarea>
+        <button class="btn small" data-act="restore">Restore history</button>
+      </div>
+    </div>`;
+}
+function backupCode(){ return 'TALKS1:' + btoa(unescape(encodeURIComponent(JSON.stringify({l:S.listened, p:S.pos})))); }
+function restoreCode(txt){
+  txt = (txt||'').trim(); const m = txt.match(/TALKS1:([A-Za-z0-9+/=]+)/); if (!m) return -1;
+  try{ const j = JSON.parse(decodeURIComponent(escape(atob(m[1])))); let n = 0;
+    for (const [k,v] of Object.entries(j.l||{})) if (!S.listened[k] && /^\d{4}-\d{2}-\d{2}$/.test(v)) { S.listened[k] = v; n++; }
+    for (const [k,v] of Object.entries(j.p||{})) if (!S.pos[k] && !S.listened[k]) S.pos[k] = v;
+    persist(); return n; }catch(e){ return -1; }
+}
+
+// ---------- render ----------
+function render(keepFocus){
+  if (!TALKS.length) return;
+  const v = $('#view');
+  const y = window.scrollY;
+  const active = keepFocus && document.activeElement && document.activeElement.id;
+  const sel = active && document.activeElement.selectionStart;
+  v.innerHTML = S.tab==='shuffle' ? viewShuffle() : S.tab==='search' ? viewSearch() : S.tab==='speakers' ? viewSpeakers() : viewHistory();
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.tab===S.tab ? 'page':'false'));
+  if (active){ const el = document.getElementById(active); if (el){ el.focus(); try{ if(sel!=null) el.setSelectionRange(sel,sel);}catch(e){} } }
+  if (keepFocus) window.scrollTo(0, y);
+}
+function go(tab){ S.tab = tab; render(); window.scrollTo(0,0); }
+
+document.querySelector('nav.tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { if (b.dataset.tab==='speakers' && S.tab==='speakers') S.speaker=null; go(b.dataset.tab); } });
+
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  if (act==='play'){ if (S.nowId===id && !audio.paused) audio.pause(); else loadTalk(id, true); return; }
+  if (act==='start'){ S.started[id] = today(); persist(); setTimeout(()=>render(true), 300); return; }
+  if (act==='mark'){ markListened(id); render(true); return; }
+  if (act==='unmark'){ delete S.listened[id]; persist(); toast('Removed from listened'); render(true); return; }
+  if (act==='shuffle'){ doShuffle(); render(true); return; }
+  if (act==='src'){ const all = Object.keys(SOURCES); let on = S.srcOn ? S.srcOn.slice() : all.slice(); const s = el.dataset.src;
+    on = on.includes(s) ? on.filter(x=>x!==s) : on.concat(s); if (!on.length) on = [s]; S.srcOn = on.length===all.length ? null : on; persist(); doShuffle(); render(true); return; }
+  if (act==='qsrc'){ const all = Object.keys(SOURCES); let on = S.qSrc ? S.qSrc.slice() : all.slice(); const s = el.dataset.src;
+    on = on.includes(s) ? on.filter(x=>x!==s) : on.concat(s); if (!on.length) on = [s]; S.qSrc = on.length===all.length ? null : on; S.qShown=40; render(true); return; }
+  if (act==='theme'){ S.qTheme = el.dataset.theme; S.q=''; S.qShown=40; go('search'); return; }
+  if (act==='speaker'){ S.speaker = el.dataset.sp; S.spShown=40; go('speakers'); return; }
+  if (act==='spback'){ S.speaker = null; render(); return; }
+  if (act==='qmore'){ S.qShown += 40; render(true); return; }
+  if (act==='spmore'){ S.spShown += 40; render(true); return; }
+  if (act==='spmoreAll'){ S.spShown = Math.max(S.spShown,60) + 100; render(true); return; }
+  if (act==='hmore'){ S.hShown += 40; render(true); return; }
+  if (act==='backup'){ const code = backupCode();
+    try{ await navigator.clipboard.writeText(code); toast('Backup code copied'); }
+    catch(err){ $('#restoreBox').hidden = false; const ta = $('#restoreText'); ta.value = code; ta.select(); toast('Select and copy the code below'); } return; }
+  if (act==='showrestore'){ $('#restoreBox').hidden = false; $('#restoreText').value=''; $('#restoreText').focus(); return; }
+  if (act==='restore'){ const n = restoreCode($('#restoreText').value); if (n < 0) toast("That doesn't look like a backup code"); else { toast(n + ' talk' + (n===1?'':'s') + ' restored'); render(); } return; }
+});
+let qTimer;
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id==='q'){ S.q = el.value; S.qShown=40; clearTimeout(qTimer); qTimer = setTimeout(()=>render(true), 180); }
+  else if (el.id==='qFrom' || el.id==='qTo'){ const v = el.value; S[el.id] = /^\d{4}$/.test(v) ? v : ''; S.qShown=40; clearTimeout(qTimer); qTimer = setTimeout(()=>render(true), 300); }
+  else if (el.id==='spQ'){ S.spQ = el.value; clearTimeout(qTimer); qTimer = setTimeout(()=>render(true), 150); }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.id==='shTheme'){ S.theme = el.value; persist(); doShuffle(); render(true); }
+  else if (el.id==='qTheme'){ S.qTheme = el.value; S.qShown=40; render(true); }
+  else if (el.id==='qSort'){ S.qSort = el.value; render(true); }
+  else if (el.id==='qHide'){ S.qHide = el.checked; S.qShown=40; render(true); }
+  else if (el.id==='spSort'){ S.spSort = el.value; render(true); }
+  else if (el.dataset.act==='redate' && /^\d{4}-\d{2}-\d{2}$/.test(el.value)){ S.listened[el.dataset.id] = el.value; persist(); toast('Date updated'); }
+});
+
+// ---------- boot ----------
+loadLocal();
+fetch('talks.json').then(r => r.json()).then(j => {
+  THEMES = j.themes; SOURCES = j.sources; BUILT = j.built;
+  TALKS = j.talks.map(a => { const t = {id:a[0],src:a[1],title:a[2],speaker:a[3],date:a[4],url:a[5],audio:a[6],kind:a[7],summary:a[8],themes:a[9],topics:a[10],role:a[11]};
+    t.hay = [t.title,t.speaker,t.summary,t.topics.join(' '),t.themes.map(i=>THEMES[i]).join(' '),t.kind,srcName(t.src),t.date.slice(0,4)].join(' ').toLowerCase(); return t; });
+  for (const t of TALKS) BYID.set(t.id, t);
+  buildSpeakers();
+  $('#meta').innerHTML = `${TALKS.length.toLocaleString()} talks<br>updated ${fmtDate(BUILT)}`;
+  const h = (location.hash||'').slice(1); if (['shuffle','search','speakers','history'].includes(h)) S.tab = h;
+  render();
+  if (S.nowId && BYID.has(S.nowId)) loadTalk(S.nowId, false);
+}).catch(() => { $('#view').innerHTML = '<div class="empty">The talk list didn\'t load. Check your connection and reopen the app.</div>'; $('#meta').textContent=''; });
+
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>
