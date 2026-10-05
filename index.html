@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Talk Library</title>
-<meta name="description" content="General Conference and BYU, BYU–Idaho, BYU–Hawaii and BYU–Pathway talks since 1990.">
+<meta name="description" content="General Conference and BYU, BYU–Idaho, BYU–Hawaii and BYU–Pathway talks.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Talks">
@@ -479,8 +479,8 @@ function viewSearch(){
     <div class="field"><label for="qTheme">Topic</label><select id="qTheme">${themeOpts}</select></div>
     <div class="chips" role="group" aria-label="Sources">${chips}</div>
     <div class="row">
-      <div class="field"><label for="qFrom">From year</label><input type="number" id="qFrom" inputmode="numeric" min="1990" max="2030" placeholder="1990" value="${esc(S.qFrom)}"></div>
-      <div class="field"><label for="qTo">To year</label><input type="number" id="qTo" inputmode="numeric" min="1990" max="2030" placeholder="${new Date().getFullYear()}" value="${esc(S.qTo)}"></div>
+      <div class="field"><label for="qFrom">From year</label><input type="number" id="qFrom" inputmode="numeric" min="1850" max="2030" placeholder="Any" value="${esc(S.qFrom)}"></div>
+      <div class="field"><label for="qTo">To year</label><input type="number" id="qTo" inputmode="numeric" min="1850" max="2030" placeholder="${new Date().getFullYear()}" value="${esc(S.qTo)}"></div>
       <div class="field"><label for="qSort">Sort</label><select id="qSort"><option value="new"${S.qSort==='new'?' selected':''}>Newest</option><option value="old"${S.qSort==='old'?' selected':''}>Oldest</option><option value="rel"${S.qSort==='rel'?' selected':''}>Best match</option></select></div>
     </div>
     <label class="row" style="font-size:14px;color:var(--muted)"><input type="checkbox" id="qHide"${S.qHide?' checked':''}> Hide talks I've listened to</label>

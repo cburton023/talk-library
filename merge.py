@@ -107,7 +107,7 @@ def main():
             if SKIP_TITLE.match(t):
                 continue
             d = (r.get("d") or "")[:10]
-            if d < "1990":
+            if not re.match(r"^\d{4}-\d{2}-\d{2}$", d) or d < "1850":
                 continue
             seen.add(url)
             sp = norm_speaker(r.get("sp"))
