@@ -274,7 +274,7 @@ try{ navigator.storage && navigator.storage.persist && navigator.storage.persist
 
 // ---------- email sync (tiny Cloudflare Worker that stores one JSON copy per email) ----------
 // No password: the email is the key. The worker only ever sees a scrambled (SHA-256) version of it.
-const SYNC_URL = '';   // e.g. https://talk-sync.<name>.workers.dev, filled in once the worker exists
+const SYNC_URL = 'https://talk-sync.cburton023.workers.dev';   // e.g. https://talk-sync.<name>.workers.dev, filled in once the worker exists
 const AUTH_KEY = 'talklib.sync';
 const Cloud = {
   ready: !!SYNC_URL, auth: null, status: '', timer: null, lastPush: 0,
