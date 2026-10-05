@@ -527,7 +527,7 @@ function fmtDur(sec){ sec = Math.round(sec||0); const h = Math.floor(sec/3600), 
   if (h >= 100) return h.toLocaleString() + ' h'; if (h) return m ? `${h} h ${m} m` : `${h} h`; if (sec > 0 && m < 1) return 'under 1 min'; return `${m} min`; }
 function roundDays(){ const o = {}; for (const [k,v] of Object.entries(S.days)) if (v >= 1) o[k] = Math.round(v); return o; }
 function mergeDays(dy){ for (const [k,v] of Object.entries(dy||{})) if (/^\d{4}-\d{2}-\d{2}$/.test(k) && +v > (S.days[k]||0)) S.days[k] = +v; }
-const RANGES = [['all','All time',0],['week','Last week',7],['month','Last month',30],['3mo','3 months',91],['6mo','6 months',182],['year','Last year',365]];
+const RANGES = [['all','All time',0],['week','1 week',7],['month','1 month',30],['3mo','3 months',91],['6mo','6 months',182],['year','1 year',365]];
 function rangeStart(){ const r = RANGES.find(x=>x[0]===S.range) || RANGES[0]; if (!r[2]) return ''; const d = new Date(); d.setDate(d.getDate() - (r[2]-1));
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function topTopics(n, from){
@@ -556,7 +556,7 @@ function viewProfile(){
   for (const [,d] of ids) if (inR(d)) dayset.add(d);
   const {total, top} = topTopics(3, from);
   const firstTracked = Object.keys(S.days).sort()[0] || today();
-  const timeNote = (!from || from < firstTracked) ? `<p class="sub" style="margin:8px 0 0;font-size:12px">Time listened is counted from ${fmtDate(firstTracked)}, when the app started tracking it.</p>` : '';
+  const sinceTxt = (!from || from < firstTracked) ? ` since ${MONTHS[+firstTracked.slice(5,7)-1]}&nbsp;${+firstTracked.slice(8,10)}${firstTracked.slice(0,4) === String(new Date().getFullYear()) ? '' : ', ' + firstTracked.slice(0,4)}` : '';
   const rangeLabel = (RANGES.find(x=>x[0]===S.range)||RANGES[0])[1];
   const rangeChips = RANGES.map(([k,l]) => `<button class="chip" data-act="range" data-range="${k}" aria-pressed="${S.range===k}">${l}</button>`).join('');
   const nm = S.name || (Cloud.auth ? Cloud.auth.email.split('@')[0] : '');
@@ -573,11 +573,10 @@ function viewProfile(){
     <div class="chips range" role="group" aria-label="Time period">${rangeChips}</div>
     <div class="stats">
       <div class="stat"><b>${heard.toLocaleString()}</b><span>talks heard</span></div>
-      <div class="stat"><b>${fmtDur(secs)}</b><span>time listened</span></div>
+      <div class="stat"><b>${fmtDur(secs)}</b><span>time listened${sinceTxt}</span></div>
       <div class="stat"><b>${dayset.size.toLocaleString()}</b><span>days listening</span></div>
       <div class="stat"><b>${favN.toLocaleString()}</b><span>favorites saved</span></div>
     </div>
-    ${timeNote}
     <h3 class="sec">Top topics · ${esc(rangeLabel.toLowerCase())}</h3>
     <div class="topics">${topHTML}</div>
     ${accountHTML()}
