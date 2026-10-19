@@ -86,6 +86,54 @@ def tid(src, url):
 SKIP_TITLE = re.compile(r"^(untitled|faculty meeting|curriculum cycle report|career updates|.*state of the university.*)$", re.I)
 
 
+def _key(s):
+    s = html.unescape(s or "").lower().replace("’", "'").replace("‘", "'")
+    return re.sub(r"[^a-z0-9]+", "", s)
+
+
+def build_sessions(talks):
+    """Group General Conference talks by conference and session, in speaking order.
+
+    raw/gc-sessions.json: {"2026-10": [["Saturday Morning Session", ["Title", ...]], ...]}
+    Result: {"2026-10": [["Saturday Morning Session", [talk ids...]], ...]}; talks not matched to a
+    session go in a final "Other Talks" group so nothing goes missing.
+    """
+    path = os.path.join(SRC_DIR, "gc-sessions.json")
+    toc = json.load(open(path)) if os.path.exists(path) else {}
+    by_conf = {}
+    for t in talks:
+        if t[1] != "gc":
+            continue
+        m = re.search(r"general-conference/(\d{4})/(\d{2})/", t[5])
+        if m:
+            by_conf.setdefault(m[1] + "-" + m[2], []).append(t)
+    out = {}
+    for conf, ts in by_conf.items():
+        left = {}
+        for t in ts:
+            left.setdefault(_key(t[2]), []).append(t)
+        groups = []
+        for name, titles in toc.get(conf, []):
+            ids = []
+            for title in titles:
+                k = _key(title)
+                bucket = left.get(k)
+                if not bucket:  # line may carry the speaker after the title ("Title — Name")
+                    cands = [kk for kk, v in left.items() if v and len(kk) >= 5 and k.startswith(kk)]
+                    if cands:
+                        bucket = left[max(cands, key=len)]
+                if bucket:
+                    ids.append(bucket.pop(0)[0])
+            if ids:
+                groups.append([name, ids])
+        rest = [t for b in left.values() for t in b]
+        if rest:
+            rest.sort(key=lambda t: t[5])
+            groups.append(["Other Talks" if groups else "Talks", [t[0] for t in rest]])
+        out[conf] = groups
+    return out
+
+
 def main():
     talks, seen = [], set()
     counts = Counter()
@@ -125,12 +173,14 @@ def main():
             ])
             counts[src] += 1
     talks.sort(key=lambda x: x[4], reverse=True)
+    sessions = build_sessions(talks)
     out = {
         "built": __import__("datetime").date.today().isoformat(),
         "fields": ["id", "src", "title", "speaker", "date", "url", "audio", "kind", "summary", "themes", "topics", "role"],
         "sources": SOURCES,
         "themes": [n for n, _ in THEMES],
         "talks": talks,
+        "gcSessions": sessions,
     }
     json.dump(out, open(OUT, "w"), ensure_ascii=False, separators=(",", ":"))
     print("wrote", OUT, len(talks), dict(counts), os.path.getsize(OUT), "bytes")

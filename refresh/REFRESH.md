@@ -19,6 +19,13 @@ can't reach these sites, so collection has to happen there), plus push access to
    writing them to a file. Check `NEW.errs` first.
 4. `python3 refresh/add_new.py new-*.json`, then `python3 merge.py raw talks.json`.
    Check that the counts went up and nothing dropped.
+   For a new General Conference, also add its sessions (the app's Conference tab groups talks by
+   session): WebFetch https://www.churchofjesuschrist.org/study/general-conference/YYYY/MM?lang=eng
+   with the prompt "List every session heading on this page, in order, and under each heading list
+   the talk titles exactly as shown. Output as plain lines: \"## <session heading>\" then one title
+   per line.", save the output as YYYY-MM.txt in an empty folder, run
+   `python3 refresh/parse_sessions.py <that folder>`, then rerun `python3 merge.py raw talks.json`.
+   Talks it can't place show up under "Other Talks", so check that group is empty.
 5. Delete the `new-*.json` files, commit `raw/` and `talks.json`, and push to `main`.
    GitHub Pages republishes within about a minute, and everyone's app picks it up on its
    next open.
