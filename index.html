@@ -51,7 +51,7 @@ h3.sec{font:600 13px/1 var(--body);letter-spacing:.08em;text-transform:uppercase
 
 /* tab bar */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);height:var(--tabh)}
+nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--tabh)}
 nav.tabs button{background:none;border:0;padding:8px 2px 7px;letter-spacing:-.01em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
 nav.tabs button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav.tabs button[aria-current="page"]{color:var(--accent)}
@@ -180,7 +180,10 @@ details.more[open] summary{margin-bottom:10px}
 .sess-h h3{margin:0;font:600 19px/1.2 var(--display)}
 .sess-h .n{font-size:13px;color:var(--muted);white-space:nowrap}
 .sess-h .btn{white-space:nowrap;flex:none}
-@media (max-width:380px){nav.tabs button{font-size:10.5px}}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;margin:16px 0 12px}
+.seg button{border:0;background:none;border-radius:9px;padding:9px 6px;font-size:15px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .linkbtn{background:none;border:0;padding:6px 0;color:var(--accent);font-weight:600;font-size:14px}
 /* favorites + playlists */
 .ico{background:none;border:1px solid var(--line);border-radius:10px;width:38px;height:36px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);padding:0}
@@ -248,11 +251,10 @@ details.more[open] summary{margin-bottom:10px}
 <audio id="audio" preload="metadata" playsinline></audio>
 
 <nav class="tabs" aria-label="Sections"><div class="in">
-  <button data-tab="shuffle" aria-current="page"><svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle</button>
-  <button data-tab="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</button>
-  <button data-tab="speakers"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Speakers</button>
-  <button data-tab="conference"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/><path d="M12 5V2"/></svg>Conference</button>
   <button data-tab="saved"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Saved</button>
+  <button data-tab="browse"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M8 19V5"/><path d="M12.5 19.2 15.8 5"/><path d="M3 19.5h18"/><path d="M16.5 5.5l3.8 13.6"/></svg>Browse</button>
+  <button data-tab="shuffle"><svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle</button>
+  <button data-tab="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</button>
   <button data-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6c1.4-2.3 3.4-3.4 5.8-3.4s4.4 1.1 5.8 3.4"/></svg>Profile</button>
 </div></nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -284,10 +286,10 @@ const S = { tab:'shuffle', listened:{}, started:{}, pos:{}, speed:1, nowId:null,
 function loadLocal(){ try{ const j = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
   S.listened = j.listened||{}; S.started = j.started||{}; S.pos = j.pos||{}; S.speed = j.speed||1; S.nowId = j.nowId||null;
   S.fav = j.fav||{}; S.pls = Array.isArray(j.pls) ? j.pls : []; S.queue = j.queue||null;
-  S.secs = +j.secs||0; S.days = j.days||{}; S.range = j.range||'all'; S.name = j.name||''; S.updated = +j.updated||0;
+  S.secs = +j.secs||0; S.days = j.days||{}; S.range = j.range||'all'; S.browse = j.browse||'conference'; S.name = j.name||''; S.updated = +j.updated||0;
   if (S.secs > 0 && !Object.keys(S.days).length) S.days[today()] = S.secs;   // minutes counted before per-day tracking
   if (j.srcOn) S.srcOn = j.srcOn; if (j.theme) S.theme = j.theme; }catch(e){} }
-function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({listened:S.listened, started:S.started, pos:S.pos, speed:S.speed, nowId:S.nowId, srcOn:S.srcOn, theme:S.theme, fav:S.fav, pls:S.pls, queue:S.queue, secs:S.secs, days:S.days, range:S.range, name:S.name, updated:S.updated})); }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({listened:S.listened, started:S.started, pos:S.pos, speed:S.speed, nowId:S.nowId, srcOn:S.srcOn, theme:S.theme, fav:S.fav, pls:S.pls, queue:S.queue, secs:S.secs, days:S.days, range:S.range, browse:S.browse, name:S.name, updated:S.updated})); }catch(e){} }
 // persist(): a change to synced data (history, favorites, playlists, time). Bumps the change clock and queues a cloud save.
 function persist(quiet){ S.updated = Date.now(); saveLocal(); if (!quiet && typeof Cloud !== 'undefined') Cloud.queue(); }
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
@@ -733,11 +735,15 @@ function viewConference(){
   const shown = decade==='all' ? years : years.filter(y=>y.startsWith(decade.slice(0,3)));
   const btn = (c) => { if (!GCS[c]) return `<span class="none">—</span>`; const st = confStats(c);
     return `<button data-act="confopen" data-conf="${c}" class="${st.heard && st.heard===st.n ? 'all':''}"><span>${c.slice(5)==='04'?'April':'October'}</span><span class="h">${st.heard ? st.heard+'/'+st.n : st.n}</span></button>`; };
-  return `<h2 class="view-title">General Conference</h2>
-    <button class="conf-hero" data-act="confopen" data-conf="${latest}"><span class="k">Most recent conference</span><span class="t">${confName(latest)}</span><span class="m">${ls.n} talks · ${ls.heard} heard</span></button>
+  return `<button class="conf-hero" data-act="confopen" data-conf="${latest}"><span class="k">Most recent conference</span><span class="t">${confName(latest)}</span><span class="m">${ls.n} talks · ${ls.heard} heard</span></button>
     <h3 class="sec">Conferences by year</h3>
     <div class="chips range decades" role="group" aria-label="Decade"><button class="chip" data-act="confdec" data-dec="all" aria-pressed="${decade==='all'}">All</button>${decades.map(d=>`<button class="chip" data-act="confdec" data-dec="${d}" aria-pressed="${decade===d}">${d}s</button>`).join('')}</div>
     <div class="years">${shown.map(y=>`<div class="yr"><b>${y}</b>${btn(y+'-04')}${btn(y+'-10')}</div>`).join('')}</div>`;
+}
+
+function viewBrowse(){
+  const b = S.browse || 'conference';
+  return `<div class="seg" role="group" aria-label="Browse by"><button data-act="browse" data-b="conference" aria-pressed="${b==='conference'}">Conference</button><button data-act="browse" data-b="speakers" aria-pressed="${b==='speakers'}">Speakers</button></div>` + (b==='speakers' ? viewSpeakers() : viewConference());
 }
 
 // ---------- render ----------
@@ -747,21 +753,21 @@ function render(keepFocus){
   const y = window.scrollY;
   const active = keepFocus && document.activeElement && document.activeElement.id;
   const sel = active && document.activeElement.selectionStart;
-  v.innerHTML = S.tab==='shuffle' ? viewShuffle() : S.tab==='search' ? viewSearch() : S.tab==='speakers' ? viewSpeakers() : S.tab==='saved' ? viewSaved() : S.tab==='conference' ? viewConference() : viewProfile();
+  v.innerHTML = S.tab==='shuffle' ? viewShuffle() : S.tab==='search' ? viewSearch() : S.tab==='browse' ? viewBrowse() : S.tab==='saved' ? viewSaved() : viewProfile();
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.tab===S.tab ? 'page':'false'));
   if (active){ const el = document.getElementById(active); if (el){ el.focus(); try{ if(sel!=null) el.setSelectionRange(sel,sel);}catch(e){} } }
   if (keepFocus) window.scrollTo(0, y);
 }
 function go(tab){ S.tab = tab; render(); window.scrollTo(0,0); }
 
-document.querySelector('nav.tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { if (b.dataset.tab==='speakers' && S.tab==='speakers') S.speaker=null; if (b.dataset.tab==='saved' && S.tab==='saved') S.openPl=null; if (b.dataset.tab==='conference' && S.tab==='conference') S.openConf=null; go(b.dataset.tab); } });
+document.querySelector('nav.tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { if (b.dataset.tab==='browse' && S.tab==='browse'){ S.speaker=null; S.openConf=null; } if (b.dataset.tab==='saved' && S.tab==='saved') S.openPl=null; go(b.dataset.tab); } });
 
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const act = el.dataset.act, id = el.dataset.id;
   if (act==='play'){ if (S.nowId===id && !audio.paused) audio.pause();
     else if (S.tab==='saved' && S.openPl && plById(S.openPl) && plById(S.openPl).ids.includes(id)) playList(S.openPl, id);
-    else if (S.tab==='conference' && S.openConf && GCS[S.openConf]){ const si = GCS[S.openConf].findIndex(g=>g[1].includes(id)); if (si >= 0) playList('conf:'+S.openConf+':'+si, id); else loadTalk(id, true); }
+    else if (S.tab==='browse' && S.browse!=='speakers' && S.openConf && GCS[S.openConf]){ const si = GCS[S.openConf].findIndex(g=>g[1].includes(id)); if (si >= 0) playList('conf:'+S.openConf+':'+si, id); else loadTalk(id, true); }
     else { if (S.queue && !S.queue.ids.includes(id)) S.queue = null; loadTalk(id, true); } return; }
   if (act==='fav'){ toggleFav(id); render(true); return; }
   if (act==='addpl'){ openSheet(id); return; }
@@ -792,7 +798,8 @@ document.addEventListener('click', async e => {
   if (act==='qsrc'){ const all = Object.keys(SOURCES); let on = S.qSrc ? S.qSrc.slice() : all.slice(); const s = el.dataset.src;
     on = on.includes(s) ? on.filter(x=>x!==s) : on.concat(s); if (!on.length) on = [s]; S.qSrc = on.length===all.length ? null : on; S.qShown=40; render(true); return; }
   if (act==='theme'){ S.qTheme = el.dataset.theme; S.q=''; S.qShown=40; go('search'); return; }
-  if (act==='speaker'){ S.speaker = el.dataset.sp; S.spShown=40; go('speakers'); return; }
+  if (act==='speaker'){ S.speaker = el.dataset.sp; S.spShown=40; S.browse='speakers'; saveLocal(); go('browse'); return; }
+  if (act==='browse'){ S.browse = el.dataset.b; saveLocal(); render(); window.scrollTo(0,0); return; }
   if (act==='spback'){ S.speaker = null; render(); return; }
   if (act==='qmore'){ S.qShown += 40; render(true); return; }
   if (act==='spmore'){ S.spShown += 40; render(true); return; }
@@ -848,7 +855,7 @@ fetch('talks.json').then(r => r.json()).then(j => {
   for (const t of TALKS) BYID.set(t.id, t);
   buildSpeakers();
   $('#meta').innerHTML = `${TALKS.length.toLocaleString()} talks<br>updated ${fmtDate(BUILT)}`;
-  const h = (location.hash||'').slice(1); if (['shuffle','search','speakers','conference','saved','profile','history'].includes(h)) S.tab = h==='history' ? 'profile' : h;
+  const h = (location.hash||'').slice(1); if (['shuffle','search','browse','speakers','conference','saved','profile','history'].includes(h)){ S.tab = h==='history' ? 'profile' : (h==='speakers'||h==='conference') ? 'browse' : h; if (h==='speakers'||h==='conference') S.browse = h; }
   render();
   if (S.nowId && BYID.has(S.nowId)) loadTalk(S.nowId, false);
   Cloud.sync();
